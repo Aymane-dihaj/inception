@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  nginx:
+    container_name: nginx
+    image: nginx    #image name
+    build:
+      context: ./requirements/nginx   #where docker-compose should look for the dockerfile to build the image
+      dockerfile: Dockerfile      #dockerfile name
+    depends_on:       #used to start wordpress before nginx
+      - wordpress
+    volumes:
+      - wordpress:/var/www/wordpress
+    ports:
+      - "443:443"
+    networks:
+      - inception
+    env_file:
+      - .env
+    restart: always
+  
+  wordpress:
+    container_name: wordpress
+    image:  wordpress
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    depends_on:
+      - mariadb
+    volumes:
+      - wordpress:/var/www/wordpress
+    networks:
+      - inception
+    ports:
+      - "9000:9000"
+    env_file:
+      - .env
+    restart: always
+
+  
+  mariadb:
+    container_name: mariadb
+    image: mariadb
+    build:
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    volumes:
+      - mariadb:/var/lib/mysql
+    networks:
+      - inception
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    restart: always
+
+
+  volumes:
+    mariadb:
+      name: mariadb
+      driver: local
+      driver
