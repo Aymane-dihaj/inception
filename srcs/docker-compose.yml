@@ -1,62 +1,98 @@
-version: '3'
-
 services:
-  nginx:
-    container_name: nginx
-    image: nginx    #image name
-    build:
-      context: ./requirements/nginx   #where docker-compose should look for the dockerfile to build the image
-      dockerfile: Dockerfile      #dockerfile name
-    depends_on:       #used to start wordpress before nginx
-      - wordpress
-    volumes:
-      - wordpress:/var/www/wordpress
-    ports:
-      - "443:443"
-    networks:
-      - inception
-    env_file:
-      - .env
-    restart: always
-  
-  wordpress:
-    container_name: wordpress
-    image:  wordpress
-    build:
-      context: ./requirements/wordpress
-      dockerfile: Dockerfile
-    depends_on:
-      - mariadb
-    volumes:
-      - wordpress:/var/www/wordpress
-    networks:
-      - inception
-    ports:
-      - "9000:9000"
-    env_file:
-      - .env
-    restart: always
 
-  
+  # mariadb container ------------------------------------------------------------
+
+  # this is the only container that no depend on the others, so its the first to be created
   mariadb:
     container_name: mariadb
-    image: mariadb
-    build:
-      context: ./requirements/mariadb
-      dockerfile: Dockerfile
+    build: ./requirements/mariadb/
     volumes:
-      - mariadb:/var/lib/mysql
+      - database:/var/lib/mysql/
     networks:
-      - inception
-    ports:
-      - "3306:3306"
+      - all
+    init: true
+    restart: on-failure
     env_file:
       - .env
-    restart: always
 
+  # wordpress container ------------------------------------------------------------
 
-  volumes:
-    mariadb:
-      name: mariadb
-      driver: local
-      driver
+  # this is the second container to be created, it depends on the mariadb container
+  wordpress:
+    container_name: wordpress
+    build: ./requirements/wordpress/
+    volumes:
+      - wordpress_files:/var/www/inception/
+    networks:
+      - all
+    init: true
+    restart: on-failure
+    env_file:
+      - .env
+    depends_on:
+      - mariadb
+
+  # nginx container ------------------------------------------------------------
+
+  # this is the last container to be created, it depends on the wordpress container
+  # it use args to pass the certificate and key path to the Dockerfile
+  # in the build moment with show the private informations that where in the .env file
+  nginx:
+    container_name: nginx
+    build:
+      context: ./requirements/nginx/
+      args:
+        CERT_FOLDER: ${CERT_FOLDER}
+        CERTIFICATE: ${CERTIFICATE}
+        KEY: ${KEY}
+        COUNTRY: ${COUNTRY}
+        STATE: ${STATE}
+        LOCALITY: ${LOCALITY}
+        ORGANIZATION: ${ORGANIZATION}
+        UNIT: ${UNIT}
+        COMMON_NAME: ${COMMON_NAME}
+    ports:
+      - '443:443'
+    volumes:
+      - wordpress_files:/var/www/inception/
+    networks:
+      - all
+    init: true
+    restart: on-failure
+    env_file:
+      - .env
+    depends_on:
+      - wordpress
+
+# volumes --------------------------------------------------------------------
+
+# keeps the data shared between the containers
+# it acts like a shared hard drive between the containers and the host machine
+# device: where the data will be stored in the host machine
+volumes:
+
+  # keeps the database
+  database:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ~/data/database
+
+  # keeps the wordpress files
+  wordpress_files:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ~/data/wordpress_files
+
+# networks --------------------------------------------------------------------
+
+# this network is used to connect the containers
+# it acts like a virtual switch between the containers
+# all is the name of the network
+# bridge is the type of the network
+networks:
+  all:
+    driver: bridge
