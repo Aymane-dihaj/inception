@@ -1,25 +1,21 @@
-all: up
+build:
+	cd ./srcs/ && docker-compose build
 
 up:
-	@echo "Making up the project..."
-	cd ./srcs/ && docker-compose up --build > /dev/null
+	cd ./srcs/ && docker-compose up
+
 stop:
-	@echo "Stopping the project..."
-	@cd ./srcs/ && docker-compose stop > /dev/null
-	@echo "Stopped ✅"
+	cd ./srcs/ && docker-compose stop 
 
 down:
-	@echo "Making down the project..."
-	@cd ./srcs/ && docker-compose down > /dev/null
-	@echo "Down ✅"
+	cd ./srcs/ && docker-compose down 
 
 
-#change to static path
 clean: down
-	@sudo rm -rf /home/adihaj/data/mariadb/*
-	@sudo rm -rf /home/adihaj/data/wordpress/*
-	@docker volume rm srcs_database srcs_website
-	@echo "Volumes cleaned ✅"
+	sudo rm -rf /home/adihaj/data/wordpress
+	sudo rm -rf /home/adihaj/data/mariadb
+	sudo docker volume rm database
+	sudo docker volume rm website
 
 fclean:
 	docker system prune -af
