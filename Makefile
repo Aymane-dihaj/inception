@@ -12,10 +12,10 @@ down:
 
 
 clean: down
-	sudo rm -rf /home/adihaj/data/wordpress
-	sudo rm -rf /home/adihaj/data/mariadb
-	sudo docker volume rm database
-	sudo docker volume rm website
+	sudo rm -rf /home/adihaj/data/wordpress/*
+	sudo rm -rf /home/adihaj/data/mariadb/*
+	sudo docker volume rm srcs_database
+	sudo docker volume rm srcs_website
 
 fclean:
 	docker system prune -af

@@ -13,7 +13,7 @@ services:
       - .env
     networks:
       - mynetwork
-    restart: always
+    restart: on-failure
 
   wordpress:
     build: ./requirements/wordpress/
@@ -29,7 +29,7 @@ services:
       - .env
     depends_on:
       - mariadb
-    restart: always
+    restart: on-failure
 
 
   nginx:
@@ -42,7 +42,7 @@ services:
       - website:/var/www/html/mywebsite/
     networks:
       - mynetwork
-    restart: always
+    restart: on-failure
     env_file:
       - .env
     depends_on:

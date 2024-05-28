@@ -1,8 +1,8 @@
 #! /bin/bash
 
-mkdir -p /var/www/mywebsite
-cd /var/www/mywebsite
-chown -R www-data:www-data /var/www/mywebsite/
+mkdir -p /var/www/html/mywebsite
+cd /var/www/html/mywebsite
+chown -R www-data:www-data /var/www/html/mywebsite/
 
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 sleep 2
@@ -13,7 +13,7 @@ mv wp-cli.phar /usr/local/bin/wp
 
 # Download WordPress if not already present
 if [ ! -f "wp-config.php" ]; then
-    wp core download --path=/var/www/mywebsite/ --allow-root
+    wp core download --path=/var/www/html/mywebsite/ --allow-root
     cp wp-config-sample.php wp-config.php
 fi;
 
@@ -27,13 +27,13 @@ sed -i "s/^define( 'DB_HOST', 'localhost' )/define( 'DB_HOST', '$hostname');/" w
 mkdir /run/php
 
 
-if ! wp --allow-root core is-installed --path=/var/www/mywebsite/
+if ! wp --allow-root core is-installed --path=/var/www/html/mywebsite/
 then
-    wp core install --path=/var/www/mywebsite/ --url=https://$WP_DOMAIN --title="$WP_TITLE" --admin_user=$WP_ADMIN --admin_password=$WP_PASSWORD --admin_email=$WP_ADMIN_MAIL --allow-root
+    wp core install --path=/var/www/html/mywebsite/ --url=https://$WP_DOMAIN --title="$WP_TITLE" --admin_user=$WP_ADMIN --admin_password=$WP_PASSWORD --admin_email=$WP_ADMIN_MAIL --allow-root
 fi;
 
 
-if ! wp --allow-root --path=/var/www/mywebsite/ user get $second_user;
+if ! wp --allow-root --path=/var/www/html/mywebsite/ user get $second_user;
 then
     wp user create $second_user $second_user_mail --role=author --user_pass=$second_user_pass --display_name=$second_user_display_name --allow-root
 fi;
